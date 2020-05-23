@@ -12,7 +12,6 @@ describe('Testing Plannings API endpoints', () => {
   let planningId;
 
   beforeAll((done) => {
-    console.debug(MONGODB_URI)
     mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true
