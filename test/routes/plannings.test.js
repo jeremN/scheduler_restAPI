@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const User = require('../../models/user');
-const MONGODB_URI = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0-fdsvx.mongodb.net/${process.env.DB_TEST_NAME}`;
+const MONGODB_URI = `${process.env.DB_TEST_URL}`;
 
 describe('Testing Plannings API endpoints', () => {
   let userId;
