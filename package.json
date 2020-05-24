@@ -4,7 +4,7 @@
   "description": "REST api for scheduler app.",
   "main": "index.js",
   "scripts": {
-    "test": "jest --detectOpenHandles",
+    "test": "jest --detectOpenHandles --runInBand",
     "start": "node app.js",
     "dev": "nodemon -r dotenv/config app.js"
   },
