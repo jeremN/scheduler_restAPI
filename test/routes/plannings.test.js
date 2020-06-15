@@ -71,6 +71,20 @@ describe('Testing Plannings API endpoints', () => {
     expect(response.body.planning.title).toBe('Testing');
   });
 
+  it('Should duplicate a planning', async () => {
+    const response = await supertest(app)
+      .post('/plannings/duplicate')
+      .send({ 
+        planningID: planningId,
+        userId: userId
+      })
+      .set('Accept', 'application/json');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('newID');
+    expect(response.body.message).toBe('Planning duplicated !');
+  });
+
   /* it('Should send an error if the planningID does not exist', async () => {
     const response = await supertest(app).get('/plannings/planning/154983absc');
 
@@ -98,6 +112,7 @@ describe('Testing Plannings API endpoints', () => {
     expect(response.body.planning.title).toBe('Test update');
   });
 
+  
   it('Should delete planning', async () => {
     const response = await supertest(app).delete(`/plannings/deletePlanning/${planningId}`);
 

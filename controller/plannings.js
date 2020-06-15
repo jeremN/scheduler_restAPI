@@ -1,14 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const merge = require('deepmerge');
-
+const mongoose = require('mongoose');
 const Plannings = require('../models/plannings');
 const User = require('../models/user');
 
 exports.getPlannings = async (req, res, next) => {
   const currentLimit = 10;
-  const { userId = '5ebf1a9219389510e8b39eb6' } = req;
+  const { userId = '5ec84f99e62b85473c18d87a' } = req.body;
 
   try {
     const userPlannings = await User.findById(userId)
@@ -31,7 +27,7 @@ exports.getPlannings = async (req, res, next) => {
 
 exports.getPlanning = async (req, res, next) => {
   const { planningId } = req.params;
-  const { userId = '5ebf1a9219389510e8b39eb6' } = req;
+  const { userId = '5ec84f99e62b85473c18d87a' } = req;
   const planning = await Plannings.findById(planningId);
 
   try {
@@ -63,7 +59,7 @@ exports.getPlanning = async (req, res, next) => {
 exports.createPlanning = async (req, res, next) => {
   // TODO, must add validation (with express-validator)
   const { newPlanning } = req.body;
-  const { userId = '5ebf1a9219389510e8b39eb6' } = req.body;
+  const { userId = '5ec84f99e62b85473c18d87a' } = req.body;
 
   const planning = new Plannings({
     ...newPlanning,
@@ -90,10 +86,43 @@ exports.createPlanning = async (req, res, next) => {
   }
 }
 
+exports.duplicatePlanning = async (req, res, next) => {
+  const { planningID } = req.body;
+  const planningToDuplicate = await Plannings.findById(planningID);
+  const tempPlanning = Object.assign(planningToDuplicate, { _id: mongoose.Types.ObjectId(), isNew: true });
+  const planning = new Plannings(tempPlanning);
+  const { userId = '5ec84f99e62b85473c18d87a' } = req.body;
+
+  try {
+    if (!planningToDuplicate) {
+      const error = new Error('Could not find planning.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await planning.save();
+    const user = await User.findById(userId);
+    user.plannings.push(planning);
+    await user.save();
+
+    res.status(200).json({
+      message: 'Planning duplicated !',
+      newID: planning._id
+    });
+
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    } 
+    next(err);
+  }
+
+}
+
 exports.updatePlanning = async (req, res, next) => {
   const { planningId } = req.params;
   const { updatedPlanning } = req.body;
-  const { userId = '5ebf1a9219389510e8b39eb6' } = req.body;
+  const { userId = '5ec84f99e62b85473c18d87a' } = req;
 
   try {
     let planning = await Plannings.findById(planningId);
@@ -127,7 +156,7 @@ exports.updatePlanning = async (req, res, next) => {
 
 exports.deletePlanning = async (req, res, next) => {
   const { planningId } = req.params;
-  const { userId = '5ebf1a9219389510e8b39eb6' } = req;
+  const { userId = '5ebf1a9219389510e8b39eb6' } = req.body;
 
   try {
     const planning = await Plannings.findById(planningId);

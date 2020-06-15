@@ -6,40 +6,34 @@ const isAuth = require('../middleware/is-authenticated');
 
 const router = express.Router();
 
-/**
-  * GET 
-  * Get plannings list 
+/** Get plannings list 
   * @route GET /plannings/planningsList
-  **/
+  */
 router.get('/planningsList', isAuth, planningsController.getPlannings);
 
-/**
-  * POST
-  * Create new planning
+/** Create new planning
   * @route POST /plannings/newPlanning
-  **/
+  */
 router.post('/newPlanning', isAuth, planningsController.createPlanning);
 
+/** Duplicate planning by ID 
+  * @route POST /plannings/duplicate
+  */
+router.post('/duplicate', isAuth, planningsController.duplicatePlanning);
 
-/**
-  * GET
-  * Get specific planning by ID
+/** Get specific planning by ID
   * @route GET /plannings/planning/:planningId
-  **/
+  */
 router.get('/planning/:planningId', isAuth, planningsController.getPlanning);
 
-/**
-  * PUT
-  * Update planning by ID
+/** Update planning by ID
   * @route PUT /plannings/editPlanning/:planningId
-  **/
+  */
 router.put('/editPlanning/:planningId', isAuth, planningsController.updatePlanning);
 
-/**
-  * DELETE
-  * Delete planning by ID
+/** Delete planning by ID
   * @route DELETE /plannings/deletePlanning/:planningId
-  **/
+  */
 router.delete('/deletePlanning/:planningId', isAuth, planningsController.deletePlanning);
 
 module.exports = router;

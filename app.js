@@ -24,7 +24,8 @@ const app = express();
 const MONGODB_URI = `${process.env.DB_DEV_URL}`;
 const CONNECT_CFG = {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  useCreateIndex: true
 }
 
 app.use(bodyParser.json());
@@ -42,7 +43,7 @@ app.use(cors());
 app.use('/plannings', planningsRoutes);
 
 app.use((error, req, res, next) => {
-  console.error(error);
+  console.error('app.js error', error);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
