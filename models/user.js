@@ -4,12 +4,10 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
   email: {
     type: String,
-    required: true,
     unique: true
   },
   password: {
     type: String,
-    required: true
   },
   firstname: {
     type: String,
@@ -40,8 +38,22 @@ const userSchema = new Schema({
       ref: 'Plannings'
     }
   ],
-  rightsAccess: {}
-
+  accessType: {
+    type: String,
+    default: 'user'
+  },
+  rights: {
+    plannings: {
+      create: Boolean,
+      write: Boolean,
+      read: Boolean
+    },
+    teams: {
+      create: Boolean,
+      write: Boolean,
+      read: Boolean
+    }
+  }
 });
 
 module.exports = mongoose.model('User', userSchema);
