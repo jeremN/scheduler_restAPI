@@ -13,7 +13,7 @@ if (envs.error) {
 
 // ROUTES
 const homeRoutes = null;
-const teamRoutes = null;
+const teamRoutes = require('./routes/teams');
 const planningsRoutes = require('./routes/plannings');
 const settingsRoutes = null;
 
@@ -40,6 +40,7 @@ app.use((req, res, next) => {
 
 app.use(cors());
 
+app.use('/teams', teamRoutes);
 app.use('/plannings', planningsRoutes);
 
 app.use((error, req, res, next) => {
