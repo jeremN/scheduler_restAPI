@@ -1,5 +1,3 @@
-const path = require('path');
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -12,10 +10,10 @@ if (envs.error) {
 }
 
 // ROUTES
-const homeRoutes = null;
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
 const teamRoutes = require('./routes/teams');
 const planningsRoutes = require('./routes/plannings');
-const settingsRoutes = null;
 
 const app = express();
 
@@ -40,6 +38,8 @@ app.use((req, res, next) => {
 
 app.use(cors());
 
+app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
 app.use('/teams', teamRoutes);
 app.use('/plannings', planningsRoutes);
 

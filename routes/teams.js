@@ -7,7 +7,7 @@ const isAuth = require('../middleware/is-authenticated');
 const router = express.Router();
 
 /** Get user teams list 
-* @route GET /team/teamsList
+* @route GET /teams/teamsList
 */
 router.get('/teamsList', isAuth, teamController.getTeams);
 
