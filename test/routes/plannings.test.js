@@ -5,10 +5,12 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const User = require('../../models/user');
+const Planning = require('../../models/plannings');
 const MONGODB_URI = `${process.env.DB_TEST_URL}`;
 
 describe('Testing Plannings API endpoints', () => {
   let userId;
+  let token;
   let planningId;
 
   beforeAll((done) => {
@@ -17,19 +19,26 @@ describe('Testing Plannings API endpoints', () => {
       useUnifiedTopology: true
     })
     .then(async () => {
-      try {
-        const mockUser = new User({
-          email: 'test@test.com',
-          password: 'tester',
-          firstname: 'Test'
-        });
-        const savedUser = await mockUser.save();
-        userId = savedUser._id;
-        done();
-      } catch (e) {
-        console.error(err);
-        done(err);
-      }
+      const createUser = await supertest(app)
+        .post('/auth/signup')
+        .send({
+          email: 'plannings@plannings.com',
+          password: '12345678',
+          firstname: 'plannings test'
+        })
+        .set('Accept', 'application/json');
+
+      const currentUser = await supertest(app)
+        .post('/auth/login')
+        .send({
+          email: 'plannings@plannings.com',
+          password: '12345678',
+        })
+        .set('Accept', 'application/json');
+
+      userId = currentUser.body.userID;
+      token = currentUser.body.token;
+      done();
     })
     .catch((err) => {
       console.error(err);
@@ -41,6 +50,9 @@ describe('Testing Plannings API endpoints', () => {
   it('Should create a planning', async () => {
     const response = await supertest(app)
       .post('/plannings/newPlanning')
+      .set('Accept', 'application/json')
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId)
       .send({
         newPlanning: {
           title: 'Testing',
@@ -51,9 +63,7 @@ describe('Testing Plannings API endpoints', () => {
           endHours: '20h30',
           status: 'wip'
         },
-        userId: userId
-      })
-      .set('Accept', 'application/json');
+      });
 
     planningId = response.body.planningID;
 
@@ -61,9 +71,23 @@ describe('Testing Plannings API endpoints', () => {
     expect(response.body).toHaveProperty('planningID');
     expect(response.body.message).toBe('New planning created !');
   });
+  
+  /* it('Should send an error if the planningID does not exist', async () => {
+    const newId = `${planningId}`
+    const response = await supertest(app)
+      .get(`/plannings/planning/${newId.replace(/.$/,"z")}`)
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId);
+
+    expect(response.status).toBe(404);
+    expect(response.body.message).toBe('Could not find planning.');
+  }); */
 
   it('Should get the created planning', async () => {
-    const response = await supertest(app).get(`/plannings/planning/${planningId}`);
+    const response = await supertest(app)
+      .get(`/plannings/planning/${planningId}`)
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('planning');
@@ -74,27 +98,24 @@ describe('Testing Plannings API endpoints', () => {
   it('Should duplicate a planning', async () => {
     const response = await supertest(app)
       .post('/plannings/duplicate')
+      .set('Accept', 'application/json')
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId)
       .send({ 
         planningID: planningId,
-        userId: userId
-      })
-      .set('Accept', 'application/json');
-
+      });
+    
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('newID');
     expect(response.body.message).toBe('Planning duplicated !');
   });
-
-  /* it('Should send an error if the planningID does not exist', async () => {
-    const response = await supertest(app).get('/plannings/planning/154983absc');
-
-    expect(response.status).toBe(404);
-    expect(response.message).toBe('Could not find planning.');
-  }); */
-
+  
   it('Should update planning', async () => {
     const response = await supertest(app)
       .put(`/plannings/editPlanning/${planningId}`)
+      .set('Accept', 'application/json')
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId)
       .send({
         updatedPlanning: {
           title: 'Test update',
@@ -103,8 +124,7 @@ describe('Testing Plannings API endpoints', () => {
           status: 'published'
         },
         userId: userId
-      })
-      .set('Accept', 'application/json');
+      });
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Planning updated');
@@ -114,23 +134,24 @@ describe('Testing Plannings API endpoints', () => {
 
   
   it('Should delete planning', async () => {
-    const response = await supertest(app).delete(`/plannings/deletePlanning/${planningId}`);
+    const response = await supertest(app)
+      .delete(`/plannings/deletePlanning/${planningId}`)
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId);
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Planning deleted !');
   });
 
-  afterAll(function (done) {
-    User.findByIdAndRemove(userId)
-      .then(() => {
-        return mongoose.disconnect();
-      })
-      .then(() => {
-        done();
-      })
-      .catch((e) => {
-        console.error(e); 
-        done(e);
-      });
+  afterAll(async (done) => {
+    try {
+      await Planning.deleteMany();
+      await User.findByIdAndRemove(userId)
+      await mongoose.disconnect();
+      done();
+    } catch (error) {
+      console.error('Plannings test error', error)
+      done(error);
+    }
   });
 });

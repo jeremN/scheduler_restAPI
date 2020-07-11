@@ -4,7 +4,7 @@ const User = require('../models/user');
 
 exports.getPlannings = async (req, res, next) => {
   const currentLimit = 10;
-  const { userId = '5ec84f99e62b85473c18d87a' } = req.body;
+  const { userId } = req;
 
   try {
     const userPlannings = await User.findById(userId)
@@ -27,8 +27,12 @@ exports.getPlannings = async (req, res, next) => {
 
 exports.getPlanning = async (req, res, next) => {
   const { planningId } = req.params;
-  const { userId = '5ec84f99e62b85473c18d87a' } = req;
-  const planning = await Plannings.findById(planningId);
+  const { userId } = req;
+  let planning = null;
+
+  if (mongoose.Types.ObjectId.isValid(planningId)) {
+    planning = await Plannings.findById(planningId);
+  }
 
   try {
     if (!planning) {
@@ -37,17 +41,16 @@ exports.getPlanning = async (req, res, next) => {
       throw error;
     }
 
-    // TODO uncomment when auth & session is added
-    /* if (planning.creator._id.toString() !== userId) {
+    if (planning.creator._id.toString() !== userId) {
       const error = new Error('You are not authorized to edit this planning');
       error.statusCode = 403;
       throw error;
-    } */
+    }
 
     res.status(200).json({
       message: 'Planning fetched.',
       planning: planning
-    })
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -59,7 +62,7 @@ exports.getPlanning = async (req, res, next) => {
 exports.createPlanning = async (req, res, next) => {
   // TODO, must add validation (with express-validator)
   const { newPlanning } = req.body;
-  const { userId = '5ec84f99e62b85473c18d87a' } = req.body;
+  const { userId } = req;
 
   const planning = new Plannings({
     ...newPlanning,
@@ -91,7 +94,7 @@ exports.duplicatePlanning = async (req, res, next) => {
   const planningToDuplicate = await Plannings.findById(planningID);
   const tempPlanning = Object.assign(planningToDuplicate, { _id: mongoose.Types.ObjectId(), isNew: true });
   const planning = new Plannings(tempPlanning);
-  const { userId = '5ec84f99e62b85473c18d87a' } = req.body;
+  const { userId } = req;
 
   try {
     if (!planningToDuplicate) {
@@ -122,7 +125,7 @@ exports.duplicatePlanning = async (req, res, next) => {
 exports.updatePlanning = async (req, res, next) => {
   const { planningId } = req.params;
   const { updatedPlanning } = req.body;
-  const { userId = '5ec84f99e62b85473c18d87a' } = req;
+  const { userId } = req;
 
   try {
     let planning = await Plannings.findById(planningId);
@@ -156,7 +159,7 @@ exports.updatePlanning = async (req, res, next) => {
 
 exports.deletePlanning = async (req, res, next) => {
   const { planningId } = req.params;
-  const { userId = '5ebf1a9219389510e8b39eb6' } = req.body;
+  const { userId } = req;
 
   try {
     const planning = await Plannings.findById(planningId);

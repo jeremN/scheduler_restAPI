@@ -5,11 +5,13 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const User = require('../../models/user');
+const Team = require('../../models/teams');
 const MONGODB_URI = `${process.env.DB_TEST_URL}`;
 
 describe('Testing Team API endpoints', () => {
   let userId;
   let teamId;
+  let token;
 
   beforeAll((done) => {
     mongoose.connect(MONGODB_URI, {
@@ -18,51 +20,63 @@ describe('Testing Team API endpoints', () => {
     })
     .then(async () => {
       try {
-        const mockUser = new User({
-          email: 'test@test.com',
-          password: 'tester',
-          firstname: 'Test'
-        });
-        const savedUser = await mockUser.save();
-        userId = savedUser._id;
+        const createUser = await supertest(app)
+          .post('/auth/signup')
+          .set('Accept', 'application/json')
+          .send({
+            email: 'team@team.com',
+            password: '12345678',
+            firstname: 'TeamTest'
+          });
+
+        const currentUser = await supertest(app)
+          .post('/auth/login')
+          .send({
+            email: 'team@team.com',
+            password: '12345678',
+          })
+          .set('Accept', 'application/json');
+
+        userId = currentUser.body.userID;
+        token = currentUser.body.token;
         done();
       } catch (e) {
-        console.error(err);
-        done(err);
+        console.error(e);
+        done(e);
       }
     })
     .catch((err) => {
       console.error(err);
       done(err);
     });  
-
   });
 
   it('Should create a team', async () => {
     const response = await supertest(app)
       .post('/teams/newTeam')
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId)
+      .set('Accept', 'application/json')
       .send({
-        "newTeam": {
-          "name": "test team",
-          "location": {
-            "city": "Aubergenville"
+        newTeam: {
+          name: "test team",
+          location: {
+            city: "Aubergenville"
           }, 
-          "members": [
+          members: [
             {
-              "firstname": "Tata",
-              "lastname": "Yoyo"
+              firstname: "Tata",
+              lastname: "Yoyo"
             }, 
             {
-              "firstname": "John",
-              "lastname": "Doe"
+              firstname: "John",
+              lastname: "Doe"
             }
           ]
         },
-        userId: userId
-      })
-      .set('Accept', 'application/json');
+      });
 
-      teamId = response.body.teamID;
+    teamId = response.body.teamID;
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('teamID');
@@ -70,67 +84,65 @@ describe('Testing Team API endpoints', () => {
   });
 
   it('Should get the created team', async () => {
-    const response = await supertest(app).get(`/teams/team/${teamId}`);
+    const response = await supertest(app)
+      .get(`/teams/team/${teamId}`)
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('team');
     expect(response.body.message).toBe('Team fetched.');
-    expect(response.body.team.title).toBe('test team');
+    expect(response.body.team.name).toBe('test team');
   });
 
-  /* it('Should send an error if the planningID does not exist', async () => {
-    const response = await supertest(app).get('/plannings/planning/154983absc');
-
-    expect(response.status).toBe(404);
-    expect(response.message).toBe('Could not find planning.');
-  }); */
-
-  it('Should update planning', async () => {
+  it('Should update team', async () => {
     const response = await supertest(app)
       .put(`/teams/updateTeam/${teamId}`)
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId)
+      .set('Accept', 'application/json')
       .send({
-        "updatedTeam": {
-          "name": "test first team 2 - updated",
-          "members": [
+        updatedTeam: {
+          name: "test first team 2 - updated",
+          members: [
             {
-              "firstname": "Tonton",
-              "lastname": "Yaya"
+              firstname: "Tonton",
+              lastname: "Yaya"
             },
             {
-              "firstname": "John",
-              "lastname": "Doe"
+              firstname: "John",
+              lastname: "Doe"
             }
           ]
-        },
-        userId: userId
-      })
-      .set('Accept', 'application/json');
+        }
+      });
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Team updated');
     expect(response.body).toHaveProperty('team');
-    expect(response.body.team.title).toBe('test first team 2 - updated');
+    expect(response.body.team.name).toBe('test first team 2 - updated');
   });
 
   
   it('Should delete team', async () => {
-    const response = await supertest(app).delete(`/teams/deleteTeam/${teamId}`);
+    const response = await supertest(app)
+      .delete(`/teams/deleteTeam/${teamId}`)
+      .set('Authorization', 'bearer ' + token)
+      .set('userId', userId);
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Team deleted !');
   });
 
-  afterAll(function (done) {
-    User.findByIdAndRemove(userId)
-      .then(() => {
-        return mongoose.disconnect();
-      })
-      .then(() => {
-        done();
-      })
-      .catch((e) => {
-        console.error(e); 
-        done(e);
-      });
+  afterAll(async (done) => {
+    try {
+      await Team.deleteMany();
+      await User.deleteMany();
+      await mongoose.disconnect();
+      done();
+    } catch (error) {
+      console.error('Teams test error', error)
+      done(error);
+    }
   });
 });
