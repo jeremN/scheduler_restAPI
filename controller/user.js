@@ -62,8 +62,9 @@ exports.updateUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
   const { userId } = req;
+
   try {
-    const user = await User.findOne(userId);
+    const user = await User.findById(userId);
     if (!user) {
       const error = new Error('User not found');
       error.statusCode = 404;

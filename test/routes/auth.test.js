@@ -2,7 +2,6 @@ const supertest = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../server.js');
 const dotenv = require('dotenv');
-const user = require('../../models/user.js');
 dotenv.config();
 
 const User = require('../../models/user');
