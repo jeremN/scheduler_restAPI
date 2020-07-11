@@ -41,4 +41,5 @@ jobs:
           npm test
         env:
           DB_TEST_URL: ${{ secrets.DB_TEST_URL }}
+          JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
           CI: true
