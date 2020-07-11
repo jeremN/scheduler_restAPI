@@ -18,7 +18,6 @@ const planningsRoutes = require('./routes/plannings');
 const app = express();
 
 // MONGO DB URI
-// const MONGODB_URI = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0-fdsvx.mongodb.net/${process.env.DB_DEV_NAME}`;
 const MONGODB_URI = `${process.env.DB_DEV_URL}`;
 const CONNECT_CFG = {
   useNewUrlParser: true,

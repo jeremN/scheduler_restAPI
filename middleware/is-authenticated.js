@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const fs = require('fs-extra');
+const dotenv = require('dotenv');
+const envs = dotenv.config();
 
 module.exports = (req, res, next) => {
   const authHeader = req.get('Authorization');
@@ -15,8 +17,8 @@ module.exports = (req, res, next) => {
     expiresIn: '1h'
   };
   
-  let _PUBLIC_KEY = fs.readFileSync('./secret/jwtPublicKey.key.pub', 'utf8');
-  let _PRIVATE_KEY = fs.readFileSync('./secret/jwtPrivateKey.key', 'utf8');
+  // let _PUBLIC_KEY = process.env.JWT_PUBLIC_KEY.replace(/\\n/g, '\n') || fs.readFileSync('./secret/jwtPublicKey.key.pub', 'utf8');
+  let _PRIVATE_KEY = process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n') || fs.readFileSync('./secret/jwtPrivateKey.key', 'utf8');
   let decodedToken;
 
   try {

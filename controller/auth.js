@@ -2,6 +2,8 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs-extra');
+const dotenv = require('dotenv');
+const envs = dotenv.config();
 
 const User = require('../models/user');
 
@@ -61,7 +63,7 @@ exports.login = async (req, res, next) => {
     expiresIn: '1h'
   }
   let loadedUser;
-  let _PRIVATE_KEY = await fs.readFileSync('./secret/jwtPrivateKey.key', 'utf8');
+  let _PRIVATE_KEY = process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n') || await fs.readFileSync('./secret/jwtPrivateKey.key', 'utf8');
 
   try {
     const user = await User.findOne({ email: email });
