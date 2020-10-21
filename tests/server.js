@@ -27,4 +27,4 @@ app.use((error, req, res) => {
   })
 })
 
-exports.app = app
+module.exports = app

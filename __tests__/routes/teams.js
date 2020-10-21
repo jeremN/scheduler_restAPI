@@ -77,10 +77,10 @@ describe('Testing Team API endpoints', () => {
         },
       })
 
-    teamId = response.body.teamID
+    teamId = response.body.newTeamID
 
     expect(response.status).toBe(201)
-    expect(response.body).toHaveProperty('teamID')
+    expect(response.body).toHaveProperty('newTeamID')
     expect(response.body.message).toBe('New team created !')
   })
 
