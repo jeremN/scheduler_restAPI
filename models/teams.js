@@ -1,43 +1,62 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const teamSchema = new Schema(
   {
     name: {
       type: String,
-      required: true
+      required: true,
     },
     location: {
       city: {
         type: String,
-        default: ''
+        default: "",
       },
       address: {
         type: String,
-        default: ''
+        default: "",
       },
       geoId: {
         type: String,
-        default: ''
-      }
-    },  
+        default: "",
+      },
+    },
     creator: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
+      ref: "User",
+      required: true,
     },
     members: [
       {
         firstname: {
-          type: String
+          type: String,
+          required: true,
         },
         lastname: {
-          type: String
-        }
-      }
+          type: String,
+          required: true,
+        },
+        email: {
+          type: String,
+        },
+        poste: {
+          type: String,
+        },
+        hours: {
+          type: Number,
+        },
+        contract: {
+          type: String,
+        },
+        notes: [
+          {
+            type: String,
+          },
+        ],
+      },
     ],
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Team', teamSchema);
+module.exports = mongoose.model("Team", teamSchema);

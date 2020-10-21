@@ -1,157 +1,240 @@
-const mongoose = require('mongoose');
-const Team = require('../models/teams');
-const User = require('../models/user');
+const mongoose = require('mongoose')
+const Team = require('../models/teams')
+const User = require('../models/user')
 
 exports.createTeam = async (req, res, next) => {
-	const { userId } = req;
-  const { newTeam } = req.body;
+  const {userId} = req
+  const {newTeam} = req.body
 
   const team = new Team({
     ...newTeam,
-    creator: userId
-  });
+    creator: userId,
+  })
 
   try {
-    await team.save();
-    const user = await User.findById(userId);
-    user.team.push(team);
-    await user.save();
+    await team.save()
+    const user = await User.findById(userId)
+    user.team.push(team)
+    await user.save()
+
+    const userTeams = await User.findById(userId)
+      .populate('team')
+      .sort({createdAt: 'asc'})
 
     res.status(201).json({
       message: 'New team created !',
-      teamID: team._id,
-      creator: { _id: user._id }
-    });
-
+      newTeamID: team._id,
+      teamsList: userTeams.team,
+    })
   } catch (err) {
     if (!err.statusCode) {
-      err.statusCode = 500;
+      err.statusCode = 500
     }
-    next(err);
+    next(err)
   }
 }
 
 exports.getTeams = async (req, res, next) => {
-  const { userId } = req;
+  const {userId} = req
 
   try {
     const userTeams = await User.findById(userId)
       .populate('team')
-      .sort({ createdAt: 'asc' });
+      .sort({createdAt: 'asc'})
 
-      res.status(200).json({
-        teamsList: userTeams.team
-      });
+    res.status(200).json({
+      teamsList: userTeams.team,
+    })
   } catch (err) {
     if (!err.statusCode) {
-      err.statusCode = 500;
+      err.statusCode = 500
     }
-    next(err);
+    next(err)
   }
 }
 
 exports.getTeam = async (req, res, next) => {
-  const { teamId } = req.params;
-  const { userId } = req;
-  let team = null;
+  const {teamId} = req.params
+  const {userId} = req
+  let team = null
 
   if (mongoose.Types.ObjectId.isValid(teamId)) {
-    team = await Team.findById(teamId);
+    team = await Team.findById(teamId)
   }
 
   try {
     if (!team) {
-      const error = new Error('Could not find team.');
-      error.statusCode = 404;
-      throw error;
+      const error = new Error('Could not find team.')
+      error.statusCode = 404
+      throw error
     }
 
     if (team.creator._id.toString() !== userId) {
-      const error = new Error('You are not authorized to edit this team');
-      error.statusCode = 403;
-      throw error;
+      const error = new Error('You are not authorized to edit this team')
+      error.statusCode = 403
+      throw error
     }
 
     res.status(200).json({
       message: 'Team fetched.',
-      team: team
-    });
+      team,
+    })
   } catch (err) {
     if (!err.statusCode) {
-      err.statusCode = 500;
+      err.statusCode = 500
     }
-    next(err);
+    next(err)
   }
 }
 
 exports.updateTeam = async (req, res, next) => {
-  const { teamId } = req.params;
-  const { updatedTeam } = req.body;
-  const { userId } = req;
+  const {teamId} = req.params
+  const {updatedTeam} = req.body
+  const {userId} = req
 
   try {
-    let team = await Team.findById(teamId);
+    let team = await Team.findById(teamId)
 
     if (!team) {
-      const error = new Error('Could not find team.');
-      error.statusCode = 404;
-      throw error;
+      const error = new Error('Could not find team.')
+      error.statusCode = 404
+      throw error
     }
 
     if (team.creator._id.toString() !== userId) {
-      const error = new Error('You are not authorized to edit this team');
-      error.statusCode = 403;
-      throw error;
+      const error = new Error('You are not authorized to edit this team')
+      error.statusCode = 403
+      throw error
     }
 
-    team = Object.assign(team, updatedTeam);
-    const result = await team.save();
+    team = Object.assign(team, updatedTeam)
+    const result = await team.save()
     res.status(200).json({
       message: 'Team updated',
-      team: result
-    });
+      team: result,
+    })
   } catch (err) {
     if (!err.statusCode) {
-      err.statusCode = 500;
-    } 
-    next(err);
+      err.statusCode = 500
+    }
+    next(err)
+  }
+}
+
+exports.updateTeams = async (req, res, next) => {
+  const {updatedTeamsMembers} = req.body
+  const {userId} = req
+
+  const teamsFilteredByName = () =>
+    updatedTeamsMembers.reduce((item, nextItem) => {
+      const {
+        firstname,
+        lastname,
+        contract,
+        hours,
+        poste,
+        email,
+        teamID,
+      } = nextItem
+      const _id = teamID
+      const updatedItem = item
+
+      if (!updatedItem[`${_id}`]) updatedItem[`${_id}`] = []
+
+      updatedItem[`${_id}`].push({
+        firstname,
+        lastname,
+        contract,
+        hours,
+        poste,
+        email,
+      })
+
+      return updatedItem
+    }, {})
+
+  try {
+    const errors = []
+    const results = []
+
+    Object.keys(teamsFilteredByName).map(async teamId => {
+      let team = await Team.findById(teamId)
+
+      if (!team) {
+        const error = new Error('Could not find team.')
+        error.statusCode = 404
+        errors.push(error)
+        return
+      }
+
+      if (team.creator._id.toString() !== userId) {
+        const error = new Error(
+          `You are not authorized to edit this team ${team.name}`,
+        )
+        error.statusCode = 403
+        errors.push(error)
+        return
+      }
+
+      const updatedTeam = {
+        ...team,
+        members: [...team.members, ...teamsFilteredByName[`${teamId}`]],
+      }
+
+      team = Object.assign(team, updatedTeam)
+      const result = await team.save()
+      results.push(result)
+    })
+
+    if (errors.length === teamsFilteredByName.length) {
+      throw errors
+    }
+
+    res.status(200).json({
+      message: 'Team updated',
+      team: results,
+      errors,
+    })
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500
+    }
+    next(err)
   }
 }
 
 exports.deleteTeam = async (req, res, next) => {
-  const { teamId } = req.params;
-  const { userId } = req;
+  const {teamId} = req.params
+  const {userId} = req
 
   try {
-    const team = await Team.findById(teamId);
+    const team = await Team.findById(teamId)
 
     if (!team) {
-      const error = new Error('Could not find this team.');
-      error.statusCode = 404;
-      throw error;
+      const error = new Error('Could not find this team.')
+      error.statusCode = 404
+      throw error
     }
 
     if (team.creator._id.toString() !== userId) {
-      const error = new Error('You are not authorized to edit this team');
-      error.statusCode = 403;
-      throw error;
+      const error = new Error('You are not authorized to edit this team')
+      error.statusCode = 403
+      throw error
     }
 
-    await Team.findByIdAndRemove(teamId);
+    await Team.findByIdAndRemove(teamId)
 
-    const user = await User.findById(userId);
-    user.team.pull(teamId);
-    await user.save();
+    const user = await User.findById(userId)
+    user.team.pull(teamId)
+    await user.save()
 
     res.status(200).json({
-      message: 'Team deleted !'
-    });
-
+      message: 'Team deleted !',
+    })
   } catch (err) {
     if (!err.statusCode) {
-      err.statusCode = 500;
+      err.statusCode = 500
     }
-    next(err);
+    next(err)
   }
-
 }

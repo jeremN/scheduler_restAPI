@@ -49,6 +49,7 @@ exports.signup = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   const errors = validationResult(req);
+  console.debug('controller auth', errors, req)
 
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed');
@@ -60,7 +61,7 @@ exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   const jwtSignOptions = {
     algorithm: 'HS256',
-    expiresIn: '1h'
+    expiresIn: '2h'
   }
   let loadedUser;
   let _PRIVATE_KEY = process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n') || await fs.readFileSync('./secret/jwtPrivateKey.key', 'utf8');

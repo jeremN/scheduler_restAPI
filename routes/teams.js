@@ -1,34 +1,38 @@
-const express = require('express');
-const { check } = require('express-validator');
+const express = require('express')
 
-const teamController = require('../controller/teams');
-const isAuth = require('../middleware/is-authenticated');
+const teamController = require('../controller/teams')
+const isAuth = require('../middleware/is-authenticated')
 
-const router = express.Router();
+const router = express.Router()
 
-/** Get user teams list 
-* @route GET /teams/teamsList
-*/
-router.get('/teamsList', isAuth, teamController.getTeams);
+/** Get user teams list
+ * @route GET /teams/teamsList
+ */
+router.get('/teamsList', isAuth, teamController.getTeams)
 
 /** Get user specific team by ID
  * @route GET /teams/team/:teamId
  */
-router.get('/team/:teamId', isAuth, teamController.getTeam);
+router.get('/team/:teamId', isAuth, teamController.getTeam)
 
-/** Create new team 
-* @route GET /teams/newTeam
-*/
-router.post('/newTeam', isAuth, teamController.createTeam);
+/** Create new team
+ * @route POST /teams/newTeam
+ */
+router.post('/newTeam', isAuth, teamController.createTeam)
 
 /** Update team by ID
- * @route GET /teams/updateTeam/:teamId
+ * @route PUT /teams/updateTeam/:teamId
  */
-router.put('/updateTeam/:teamId', isAuth, teamController.updateTeam);
+router.put('/updateTeam/:teamId', isAuth, teamController.updateTeam)
 
-/** Delete team by ID 
-* @route GET /teams/deleteTeam/:teamId
-*/
- router.delete('/deleteTeam/:teamId', isAuth, teamController.deleteTeam);
+/** Update multiple team
+ * @route PUT /teams/updateTeams
+ */
+router.put('/updateTeams', isAuth, teamController.updateTeams)
 
- module.exports = router;
+/** Delete team by ID
+ * @route DELETE /teams/deleteTeam/:teamId
+ */
+router.delete('/deleteTeam/:teamId', isAuth, teamController.deleteTeam)
+
+module.exports = router

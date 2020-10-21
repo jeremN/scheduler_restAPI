@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const Plannings = require('../models/plannings');
-const User = require('../models/user');
+const mongoose = require("mongoose");
+const Plannings = require("../models/plannings");
+const User = require("../models/user");
 
 exports.getPlannings = async (req, res, next) => {
   const currentLimit = 10;
@@ -8,22 +8,22 @@ exports.getPlannings = async (req, res, next) => {
 
   try {
     const userPlannings = await User.findById(userId)
-      .populate('plannings')
-      .sort({ createdAt: 'asc' })
+      .populate("plannings")
+      .sort({ createdAt: "asc" })
       .limit(currentLimit);
     const total = await Plannings.countDocuments({ creator: userId });
 
-      res.status(200).json({
-        total: total,
-        planningsList: userPlannings.plannings
-      });
+    res.status(200).json({
+      total: total,
+      planningsList: userPlannings.plannings,
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-}
+};
 
 exports.getPlanning = async (req, res, next) => {
   const { planningId } = req.params;
@@ -36,20 +36,20 @@ exports.getPlanning = async (req, res, next) => {
 
   try {
     if (!planning) {
-      const error = new Error('Could not find planning.');
+      const error = new Error("Could not find planning.");
       error.statusCode = 404;
       throw error;
     }
 
     if (planning.creator._id.toString() !== userId) {
-      const error = new Error('You are not authorized to edit this planning');
+      const error = new Error("You are not authorized to edit this planning");
       error.statusCode = 403;
       throw error;
     }
 
     res.status(200).json({
-      message: 'Planning fetched.',
-      planning: planning
+      message: "Planning fetched.",
+      planning: planning,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -57,7 +57,7 @@ exports.getPlanning = async (req, res, next) => {
     }
     next(err);
   }
-}
+};
 
 exports.createPlanning = async (req, res, next) => {
   // TODO, must add validation (with express-validator)
@@ -66,7 +66,7 @@ exports.createPlanning = async (req, res, next) => {
 
   const planning = new Plannings({
     ...newPlanning,
-    creator: userId
+    creator: userId,
   });
 
   try {
@@ -76,29 +76,31 @@ exports.createPlanning = async (req, res, next) => {
     await user.save();
 
     res.status(201).json({
-      message: 'New planning created !',
+      message: "New planning created !",
       planningID: planning._id,
-      creator: { _id: user._id }
+      creator: { _id: user._id },
     });
-
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-}
+};
 
 exports.duplicatePlanning = async (req, res, next) => {
   const { planningID } = req.body;
   const planningToDuplicate = await Plannings.findById(planningID);
-  const tempPlanning = Object.assign(planningToDuplicate, { _id: mongoose.Types.ObjectId(), isNew: true });
+  const tempPlanning = Object.assign(planningToDuplicate, {
+    _id: mongoose.Types.ObjectId(),
+    isNew: true,
+  });
   const planning = new Plannings(tempPlanning);
   const { userId } = req;
 
   try {
     if (!planningToDuplicate) {
-      const error = new Error('Could not find planning.');
+      const error = new Error("Could not find planning.");
       error.statusCode = 404;
       throw error;
     }
@@ -109,18 +111,16 @@ exports.duplicatePlanning = async (req, res, next) => {
     await user.save();
 
     res.status(200).json({
-      message: 'Planning duplicated !',
-      newID: planning._id
+      message: "Planning duplicated !",
+      newID: planning._id,
     });
-
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
-    } 
+    }
     next(err);
   }
-
-}
+};
 
 exports.updatePlanning = async (req, res, next) => {
   const { planningId } = req.params;
@@ -131,7 +131,7 @@ exports.updatePlanning = async (req, res, next) => {
     let planning = await Plannings.findById(planningId);
 
     if (!planning) {
-      const error = new Error('Could not find planning.');
+      const error = new Error("Could not find planning.");
       error.statusCode = 404;
       throw error;
     }
@@ -146,16 +146,16 @@ exports.updatePlanning = async (req, res, next) => {
     planning = Object.assign(planning, updatedPlanning);
     const result = await planning.save();
     res.status(200).json({
-      message: 'Planning updated',
-      planning: result
+      message: "Planning updated",
+      planning: result,
     });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
-    } 
+    }
     next(err);
   }
-}
+};
 
 exports.deletePlanning = async (req, res, next) => {
   const { planningId } = req.params;
@@ -165,17 +165,16 @@ exports.deletePlanning = async (req, res, next) => {
     const planning = await Plannings.findById(planningId);
 
     if (!planning) {
-      const error = new Error('Could not find planning.');
+      const error = new Error("Could not find planning.");
       error.statusCode = 404;
       throw error;
     }
 
-    // TODO uncomment when auth & session is added
-    /* if (planning.creator._id.toString() !== userId) {
-      const error = new Error('You are not authorized to edit this planning');
+    if (planning.creator._id.toString() !== userId) {
+      const error = new Error("You are not authorized to edit this planning");
       error.statusCode = 403;
       throw error;
-    } */
+    }
 
     await Plannings.findByIdAndRemove(planningId);
 
@@ -184,13 +183,12 @@ exports.deletePlanning = async (req, res, next) => {
     await user.save();
 
     res.status(200).json({
-      message: 'Planning deleted !'
+      message: "Planning deleted !",
     });
-
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-}
+};
