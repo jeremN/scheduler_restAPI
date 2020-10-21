@@ -1,7 +1,7 @@
 const supertest = require('supertest')
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
-const app = require('../server.js')
+const app = require('../../tests/server.js')
 
 dotenv.config()
 
