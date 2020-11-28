@@ -15,6 +15,20 @@ router.get('/teamsList', isAuth, teamController.getTeams)
  */
 router.get('/team/:teamId', isAuth, teamController.getTeam)
 
+/** Get teammate by ID
+ * @route GET /teams/teammate/:teamId/:teammateId
+ */
+router.get('/teammate/:teamId/:teammateId', isAuth, teamController.getTeammate)
+
+/** Update teammate by ID
+ * @route PUT /teams/updateTeammate/:teamId/:teammateId
+ */
+router.put(
+  '/updateTeammate/:teamId/:teammateId',
+  isAuth,
+  teamController.updateTeammate,
+)
+
 /** Create new team
  * @route POST /teams/newTeam
  */
@@ -28,7 +42,7 @@ router.put('/updateTeam/:teamId', isAuth, teamController.updateTeam)
 /** Update multiple team
  * @route PUT /teams/updateTeams
  */
-router.put('/updateTeams', isAuth, teamController.updateTeams)
+// router.put('/updateTeams', isAuth, teamController.updateTeams)
 
 /** Delete team by ID
  * @route DELETE /teams/deleteTeam/:teamId

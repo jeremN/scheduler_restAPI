@@ -18,13 +18,10 @@ app.use('/teams', teamRoutes)
 app.use('/user', userRoutes)
 app.use('/auth', authRoutes)
 
-app.use((error, req, res) => {
+app.use((error, req, res, next) => {
   const status = error.statusCode || 500
-  const {message, data} = error
-  res.status(status).json({
-    message,
-    data,
-  })
+  const {message, datas} = error
+  res.status(status).json({message, datas})
 })
 
 module.exports = app

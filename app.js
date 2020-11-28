@@ -24,6 +24,7 @@ const CONNECT_CFG = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
+  useFindAndModify: false,
 }
 
 app.use(bodyParser.json())
@@ -47,11 +48,10 @@ app.use('/user', userRoutes)
 app.use('/teams', teamRoutes)
 app.use('/plannings', planningsRoutes)
 
-app.use((error, req, res) => {
+app.use((error, req, res, next) => {
   console.error('app.js error', error)
   const status = error.statusCode || 500
-  const {message} = error
-  const {data} = error
+  const {message, data} = error
 
   res.status(status).json({
     message,

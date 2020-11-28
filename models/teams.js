@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+
+const {Schema} = mongoose
 
 const teamSchema = new Schema(
   {
@@ -10,20 +11,20 @@ const teamSchema = new Schema(
     location: {
       city: {
         type: String,
-        default: "",
+        default: '',
       },
       address: {
         type: String,
-        default: "",
+        default: '',
       },
       geoId: {
         type: String,
-        default: "",
+        default: '',
       },
     },
     creator: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     members: [
@@ -50,13 +51,15 @@ const teamSchema = new Schema(
         },
         notes: [
           {
-            type: String,
+            content: {
+              type: String,
+            },
           },
         ],
       },
     ],
   },
-  { timestamps: true }
-);
+  {timestamps: true},
+)
 
-module.exports = mongoose.model("Team", teamSchema);
+module.exports = mongoose.model('Team', teamSchema)
