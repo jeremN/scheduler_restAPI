@@ -189,12 +189,10 @@ exports.updateTeammate = async (req, res, next) => {
 
   const setDatas = () => {
     if (!!updatedTeammate.notes && updatedTeammate.notes.length) {
-      console.log('A')
       return {
         'members.$.notes': updatedTeammate.notes,
       }
     }
-    console.log('B')
     return {
       'members.$.firstname': updatedTeammate.firstname,
       'members.$.lastname': updatedTeammate.lastname,
