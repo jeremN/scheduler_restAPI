@@ -204,7 +204,7 @@ exports.updateTeammate = async (req, res, next) => {
   }
 
   try {
-    let team = await Team.updateOne(
+    const team = await Team.updateOne(
       {
         _id: teamId,
         'members._id': teammateId,
@@ -213,7 +213,7 @@ exports.updateTeammate = async (req, res, next) => {
         $set: setDatas(),
       },
       {new: true},
-      (err, teammate) => {
+      err => {
         if (err) {
           const error = err
           throw error
@@ -239,7 +239,49 @@ exports.updateTeammate = async (req, res, next) => {
   }
 }
 
-exports.addNotesOnTeammate = async (req, res, next) => {}
+exports.deleteTeammate = async (req, res, next) => {
+  const {teamId, teammateId} = req.params
+  const {userId} = req
+
+  if (!userId) {
+    const error = new Error('You are not authorized to view this teammate')
+    error.statusCode = 403
+    throw error
+  }
+
+  try {
+    const team = await Team.updateOne(
+      {
+        _id: teamId,
+      },
+      {
+        $pull: {members: {_id: teammateId}},
+      },
+      err => {
+        if (err) {
+          const error = err
+          throw error
+        }
+      },
+    )
+
+    if (!team) {
+      const error = new Error('Could not find teammate.')
+      error.statusCode = 404
+      throw error
+    }
+
+    res.status(200).json({
+      message: 'Teammate deleted !',
+      deleted: true,
+    })
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500
+    }
+    next(err)
+  }
+}
 
 /* exports.updateTeams = async (req, res, next) => {
   const {updatedTeams} = req.body

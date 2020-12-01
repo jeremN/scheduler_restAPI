@@ -29,6 +29,15 @@ router.put(
   teamController.updateTeammate,
 )
 
+/** delete teammate by ID
+ * @route DELETE /teams/deleteTeammate/:teamId/:teammateId
+ */
+router.delete(
+  '/deleteTeammate/:teamId/:teammateId',
+  isAuth,
+  teamController.deleteTeammate,
+)
+
 /** Create new team
  * @route POST /teams/newTeam
  */
