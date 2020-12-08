@@ -14,6 +14,7 @@ describe('Testing Team API endpoints', () => {
   let userId
   let teamId
   let token
+  let teammateId
 
   beforeAll(done => {
     mongoose
@@ -68,6 +69,10 @@ describe('Testing Team API endpoints', () => {
             {
               firstname: 'Tata',
               lastname: 'Yoyo',
+              email: 'tata.yoyo@yo.fr',
+              hours: 39,
+              contract: 'CDI',
+              poste: 'Responsable',
             },
             {
               firstname: 'John',
@@ -90,10 +95,62 @@ describe('Testing Team API endpoints', () => {
       .set('Authorization', `bearer ${token}`)
       .set('userId', userId)
 
+    teammateId = response.body.team.members[0]._id
+    console.debug('created team', teammateId)
+
     expect(response.status).toBe(200)
     expect(response.body).toHaveProperty('team')
     expect(response.body.message).toBe('Team fetched.')
     expect(response.body.team.name).toBe('test team')
+    expect(response.body.team.members).toHaveLength(2)
+  })
+
+  it('Should get a teammate', async () => {
+    const response = await supertest(app)
+      .get(`/teams/teammate/${teamId}/${teammateId}`)
+      .set('Authorization', `bearer ${token}`)
+      .set('userId', userId)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('teammate')
+    expect(response.body).toHaveProperty('teamName')
+    expect(response.body).toHaveProperty('location')
+    expect(response.body.message).toBe('Teammate fetched.')
+  })
+
+  it('Should update a teammate', async () => {
+    const response = await supertest(app)
+      .put(`/teams/updateTeammate/${teamId}/${teammateId}`)
+      .set('Authorization', `bearer ${token}`)
+      .set('userId', userId)
+      .set('Accept', 'application/json')
+      .send({
+        updatedTeammate: {
+          firstname: 'Maud',
+          lastname: 'Flanders',
+          email: 'maud.flanders@doe.com',
+          hours: 35,
+          contract: 'CDD',
+          poste: 'Vendeuse',
+        },
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.message).toBe('Teammate profil updated !')
+    expect(response.body).toHaveProperty('updated')
+    expect(response.body.updated).toBeTruthy()
+  })
+
+  it('Should delete a teammate', async () => {
+    const response = await supertest(app)
+      .delete(`/teams/deleteTeammate/${teamId}/${teammateId}`)
+      .set('Authorization', `bearer ${token}`)
+      .set('userId', userId)
+
+    expect(response.status).toBe(200)
+    expect(response.body.message).toBe('Teammate deleted !')
+    expect(response.body).toHaveProperty('deleted')
+    expect(response.body.deleted).toBeTruthy()
   })
 
   it('Should update team', async () => {
