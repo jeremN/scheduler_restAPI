@@ -45,24 +45,24 @@ exports.signup = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   const errors = validationResult(req)
 
-  if (!errors.isEmpty()) {
-    const error = new Error('Validation failed')
-    error.statusCode = 422
-    error.data = errors.array()
-    throw error
-  }
-
-  const {email, password} = req.body
-  const jwtSignOptions = {
-    algorithm: 'HS256',
-    expiresIn: '2h',
-  }
-  let loadedUser
-  let _PRIVATE_KEY =
-    process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n') ||
-    (await fs.readFileSync('./secret/jwtPrivateKey.key', 'utf8'))
-
   try {
+    if (!errors.isEmpty()) {
+      const error = new Error('Validation failed')
+      error.statusCode = 422
+      error.data = errors.array()
+      throw error
+    }
+
+    const {email, password} = req.body
+    const jwtSignOptions = {
+      algorithm: 'HS256',
+      expiresIn: '2h',
+    }
+    let loadedUser
+    let _PRIVATE_KEY =
+      process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n') ||
+      (await fs.readFileSync('./secret/jwtPrivateKey.key', 'utf8'))
+
     const user = await User.findOne({email: email})
     if (!user) {
       const error = new Error('A user with this email could not be found')
@@ -91,6 +91,7 @@ exports.login = async (req, res, next) => {
       message: 'You are authenticated',
       token: token,
       userID: loadedUser._id.toString(),
+      username: `${loadedUser.firstname} ${loadedUser.lastname}`,
     })
   } catch (error) {
     if (!error.statusCode) {

@@ -1,63 +1,65 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
 const planningsSchema = new Schema(
   {
     title: {
       type: String,
-      required: true
-    }, 
-    shop: {
-      type: String,
-      required: true
+      required: true,
     },
     startDate: {
       type: String,
-      required: true
+      required: true,
     },
     endDate: {
       type: String,
-      required: true
+      required: true,
     },
     startHours: {
       type: String,
-      required: true
+      required: true,
     },
     endHours: {
       type: String,
-      required: true
+      required: true,
     },
     status: {
       type: String,
-      required: true
+      required: true,
     },
-    offTimes: {
-      type: Array
+    offTime: {
+      maxDuration: Number,
+      minDuration: Number,
     },
     team: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'Team'
-      }
+        ref: 'Team',
+      },
     ],
     content: [
       {
-        member: {
-          type: Schema.Types.ObjectId,
-          ref: 'Team'
-        },
-        planned: {
-          type: Array
-        }
-      }
+        type: Schema.Types.ObjectId,
+        ref: 'Team',
+        required: true,
+        planned: [
+          {
+            day: String,
+            startHour: String,
+            endHour: String,
+            pauseStartHour: String,
+            pauseEndHour: String,
+          },
+        ],
+      },
     ],
     creator: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
     },
   },
-  { timestamps: true }
-);
+  {timestamps: true},
+)
 
 module.exports = mongoose.model('Plannings', planningsSchema)

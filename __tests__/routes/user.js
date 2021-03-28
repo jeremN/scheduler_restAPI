@@ -62,12 +62,24 @@ describe('Testing User API endpoints', () => {
     expect(response.body).toHaveProperty('user')
   })
 
+  it("Should report a 404 if user don't exist on GET user request", async () => {
+    const response = await supertest(app)
+      .get(`/user/5f3d8d23b2c12c0eacf4465f`)
+      .set('Authorization', `bearer ${token}`)
+      .set('Accept', 'application/json')
+
+    expect(response.status).toBe(404)
+    expect(response.body.message).toBe('User not found')
+  })
+
   it('Should update the user', async () => {
     const response = await supertest(app)
       .put('/user/updateUser')
-      .set('Authorization', `bearer ${token}`)
-      .set('userId', userId)
-      .set('Accept', 'application/json')
+      .set({
+        userId: userId,
+        Authorization: `bearer ${token}`,
+        Accept: 'application/json',
+      })
       .send({
         updatedUser: {
           firstname: 'updated user',

@@ -56,17 +56,18 @@ exports.getTeams = async (req, res, next) => {
 exports.getTeam = async (req, res, next) => {
   const {teamId} = req.params
   const {userId} = req
-  let team = null
-
-  if (mongoose.Types.ObjectId.isValid(teamId)) {
-    team = await Team.findById(teamId)
-  } else {
-    const error = new Error('Please provide a valid teamId')
-    error.statusCode = 404
-    throw error
-  }
 
   try {
+    let team = null
+
+    if (mongoose.Types.ObjectId.isValid(teamId)) {
+      team = await Team.findById(teamId)
+    } else {
+      const error = new Error('Please provide a valid teamId')
+      error.statusCode = 404
+      throw error
+    }
+
     if (!team) {
       const error = new Error('Could not find team.')
       error.statusCode = 404
@@ -74,7 +75,7 @@ exports.getTeam = async (req, res, next) => {
     }
 
     if (team.creator._id.toString() !== userId) {
-      const error = new Error('You are not authorized to edit this team')
+      const error = new Error('You are not authorized to view this team')
       error.statusCode = 403
       throw error
     }
@@ -204,7 +205,7 @@ exports.updateTeammate = async (req, res, next) => {
   }
 
   try {
-    const team = await Team.updateOne(
+    const team = await Team.findOneAndUpdate(
       {
         _id: teamId,
         'members._id': teammateId,
@@ -250,13 +251,14 @@ exports.deleteTeammate = async (req, res, next) => {
   }
 
   try {
-    const team = await Team.updateOne(
+    const team = await Team.findOneAndUpdate(
       {
         _id: teamId,
       },
       {
         $pull: {members: {_id: teammateId}},
       },
+      {new: true},
       err => {
         if (err) {
           const error = err

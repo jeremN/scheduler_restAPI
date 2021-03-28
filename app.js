@@ -49,10 +49,10 @@ app.use('/teams', teamRoutes)
 app.use('/plannings', planningsRoutes)
 
 app.use((error, req, res, next) => {
-  console.error('app.js error', error)
+  console.debug('app.js error', error, req)
   const status = error.statusCode || 500
   const {message, data} = error
-
+  console.debug('error middleware', status, message)
   res.status(status).json({
     message,
     data,
