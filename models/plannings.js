@@ -39,9 +39,8 @@ const planningsSchema = new Schema(
     ],
     content: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-        required: true,
+        memberId: Schema.Types.ObjectId,
+        memberFullName: String,
         planned: [
           {
             day: String,
