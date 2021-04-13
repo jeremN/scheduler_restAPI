@@ -31,9 +31,7 @@ exports.getPlanning = async (req, res, next) => {
   let planning = null
 
   if (mongoose.Types.ObjectId.isValid(planningId)) {
-    planning = await Plannings.findById(planningId)
-      .populate('team')
-      .populate('content')
+    planning = await Plannings.findById(planningId).populate('team')
   }
 
   try {
@@ -130,25 +128,27 @@ exports.updatePlanning = async (req, res, next) => {
   const {userId} = req
 
   try {
-    let planning = await Plannings.findById(planningId)
+    let planningToUpdate = await Plannings.findById(planningId)
 
-    if (!planning) {
+    if (!planningToUpdate) {
       const error = new Error('Could not find planning.')
       error.statusCode = 404
       throw error
     }
 
-    if (planning.creator._id.toString() !== userId) {
+    if (planningToUpdate.creator._id.toString() !== userId) {
       const error = new Error('You are not authorized to edit this planning')
       error.statusCode = 403
       throw error
     }
 
-    planning = Object.assign(planning, updatedPlanning)
-    const result = await planning.save()
+    planningToUpdate = Object.assign(planningToUpdate, updatedPlanning)
+    await planningToUpdate.save()
+    const planning = await Plannings.findById(planningId).populate('team')
+
     res.status(200).json({
       message: 'Planning updated',
-      planning: result,
+      planning,
     })
   } catch (err) {
     if (!err.statusCode) {

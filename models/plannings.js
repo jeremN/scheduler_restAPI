@@ -40,7 +40,7 @@ const planningsSchema = new Schema(
     content: [
       {
         memberId: Schema.Types.ObjectId,
-        memberFullName: String,
+        memberFullname: String,
         planned: [
           {
             day: String,
